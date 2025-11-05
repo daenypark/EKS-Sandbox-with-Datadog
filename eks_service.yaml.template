@@ -13,10 +13,10 @@ metadata:
       [
         {
           "dbm": true,
-          "host": "danny-aurora-postgres-instance-1.ckvbk70xefba.eu-north-1.rds.amazonaws.com",
+          "host": "<YOUR_RDS_ENDPOINT>",
           "port": 5432,
-          "username": "datadog",
-          "password": "Dannypark12!",
+          "username": "<YOUR_DB_USERNAME>",
+          "password": "<YOUR_DB_PASSWORD>",
         }
       ]
 spec:
@@ -25,3 +25,4 @@ spec:
     protocol: TCP
     targetPort: 5432
     name: postgres
+

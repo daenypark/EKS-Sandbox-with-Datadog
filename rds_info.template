@@ -1,0 +1,28 @@
+# RDS Database Connection Information Template
+
+## Old Endpoint
+old: <YOUR_OLD_RDS_ENDPOINT>
+
+## New Endpoint
+new: <YOUR_NEW_RDS_ENDPOINT>
+
+## Credentials
+Master username: <MASTER_USERNAME>
+pwd: <MASTER_PASSWORD>
+
+## Kubernetes Secret Creation Command
+kubectl create secret generic database-secret --from-literal=password="<YOUR_PASSWORD>"
+
+## MySQL Connection Command
+mysql -h <YOUR_RDS_ENDPOINT> -P 3306 -u <USERNAME> -p
+
+## Test Connection
+nc -vz <YOUR_RDS_ENDPOINT> 3306
+
+## Datadog User Setup
+CREATE USER datadog@'%' IDENTIFIED by '<DATADOG_PASSWORD>';
+ALTER USER datadog@'%' WITH MAX_USER_CONNECTIONS 5;
+GRANT REPLICATION CLIENT ON *.* TO datadog@'%';
+GRANT PROCESS ON *.* TO datadog@'%';
+GRANT SELECT ON performance_schema.* TO datadog@'%';
+
