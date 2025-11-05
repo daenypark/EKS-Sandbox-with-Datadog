@@ -1,8 +1,10 @@
 # Datadog Secrets - Never commit real credentials
 datadog-secret-eks.yaml
 
-#RDS credentials
+# Database credentials and connection info
+rds_info
 rds_info.md
+eks_service.yaml
 
 # Any other secret files
 *-secret.yaml
