@@ -24,67 +24,67 @@ This document describes the overall Datadog monitoring infrastructure across EC2
 │  │  │  (spring-boot-demo)        │  │  │  │  (mydogstatsdpod)              │  │ │
 │  │  │                            │  │  │  │                                │  │ │
 │  │  │  Features:                 │  │  │  │  Features:                     │  │ │
-│  │  │  ✅ SSI (Auto-injection)   │  │  │  │  ✅ Custom Instrumentation      │ │ │
-│  │  │  ✅ APM via UDS            │  │  │  │  ✅ DogStatsD custom metrics    │ │ │
-│  │  │  ✅ DaemonSet agent        │  │  │  │  ✅ Sidecar injection           │ │ │
-│  │  │  ❌ No sidecar             │  │  │  │  ❌ No SSI                      │ │ │
-│  │  │                            │  │  │  │                                │ │ │
-│  │  │  Image: spring-boot-demo:  │  │  │  │  Image: fargate-py:latest      │ │ │
-│  │  │         latest             │  │  │  │  Service: dogstatsd-python-app │ │ │
-│  │  │  Replicas: 2               │  │  │  │  Type: Pod                     │ │ │
-│  │  └────────────────────────────┘  │  │  └────────────────────────────────┘ │ │
-│  │            │                     │  │            │                        │ │
-│  │            │ Unix Socket         │  │            │ localhost:8126         │ │
-│  │            ▼                     │  │            ▼                        │ │
-│  │  ┌────────────────────────────┐  │  │  ┌────────────────────────────────┐ │ │
-│  │  │  Datadog Agent DaemonSet   │  │  │  │  spring-boot-demo-fargate      │ │ │
-│  │  │  (Runs on EC2 node)        │  │  │  │                                │ │ │
-│  │  │                            │  │  │  │  Features:                     │ │ │
-│  │  │  • APM via UDS             │  │  │  │  ✅ Sidecar injection          │ │ │
-│  │  │  • Log collection          │  │  │  │  ✅ APM enabled                │ │ │
-│  │  │  • Metrics collection      │  │  │  │  ❌ No SSI (manual)            │ │ │
-│  │  │  • DogStatsD               │  │  │  │  ❌ Trace disabled (for now)   │ │ │
-│  │  └────────────────────────────┘  │  │  │                                │ │ │
-│  │                                  │  │  │  Image: spring-boot-demo:      │ │ │
-│  └──────────────────────────────────┘  │  │         latest                 │ │ │
-│                                        │  │  Replicas: 2                   │ │ │
-│                                        │  │  Service: spring-boot-demo-    │ │ │
-│                                        │  │           fargate-service      │ │ │
-│                                        │  └────────────────────────────────┘ │ │
-│                                        │            │                        │ │
-│                                        │            │ localhost              │ │
-│                                        │            ▼                        │ │
-│                                        │  ┌────────────────────────────────┐ │ │
-│                                        │  │  Datadog Agent Sidecar         │ │ │
-│                                        │  │  (Injected by Operator)        │ │ │
-│                                        │  │                                │ │ │
-│                                        │  │  • APM collection              │ │ │
-│                                        │  │  • Log collection              │ │ │
-│                                        │  │  • Metrics forwarding          │ │ │
-│                                        │  │  • DogStatsD                   │ │ │
-│                                        │  └────────────────────────────────┘ │ │
-│                                        │                                     │ │
-│                                        └─────────────────────────────────────┘ │
-│                                                                                │
-│  ┌───────────────────────────────────────────────────────────────────────────┐ │
-│  │                       Supporting Infrastructure                           │ │
-│  │                                                                           │ │
-│  │  • datadog-fargate-rbac.yaml - RBAC for Fargate namespace                 │ │
-│  │  • fargate_ns_svc.yaml - Fargate namespace and service definitions        │ │
-│  │  • datadog-secret-eks (Secret) - Datadog API key and cluster agent token  │ │
-│  └───────────────────────────────────────────────────────────────────────────┘ │
-│                                    |                                           │
-│                                    ▼                                           │
-│                          ┌──────────────────────┐                              │
-│                          │   Datadog Platform   │                              │
-│                          │   (datadoghq.com)    │                              │
-│                          │                      │                              │
-│                          │  • APM Traces        │                              │
-│                          │  • Custom Metrics    │                              │
-│                          │  • Logs              │                              │
-│                          │  • Infrastructure    │                              │
-│                          └──────────────────────┘                              │
-└────────────────────────────────────────────────────────────────────────────────┘
+│  │  │  ✅ SSI (Auto-injection)   │  │  │  │  ✅ Custom Instrumentation      │  │ │
+│  │  │  ✅ APM via UDS            │  │  │  │  ✅ DogStatsD custom metrics    │  │ │
+│  │  │  ✅ DaemonSet agent        │  │  │  │  ✅ Sidecar injection           │  │ │
+│  │  │  ❌ No sidecar             │  │  │  │  ❌ No SSI                      │  │ │
+│  │  │                            │  │  │  │                                │  │ │
+│  │  │  Image: spring-boot-demo:  │  │  │  │  Image: fargate-py:latest      │  │ │
+│  │  │         latest             │  │  │  │  Service: dogstatsd-python-app │  │ │
+│  │  │  Replicas: 2               │  │  │  │  Type: Pod                     │  │ │
+│  │  └────────────────────────────┘  │  │  └────────────────────────────────┘  │ │
+│  │            │                     │  │            │                         │ │
+│  │            │ Unix Socket         │  │            │ localhost:8126          │ │
+│  │            ▼                     │  │            ▼                         │ │
+│  │  ┌────────────────────────────┐  │  │  ┌────────────────────────────────┐  │ │
+│  │  │  Datadog Agent DaemonSet   │  │  │  │  spring-boot-demo-fargate      │  │ │
+│  │  │  (Runs on EC2 node)        │  │  │  │                                │  │ │
+│  │  │                            │  │  │  │  Features:                     │  │ │
+│  │  │  • APM via UDS             │  │  │  │  ✅ Sidecar injection          │  │ │
+│  │  │  • Log collection          │  │  │  │  ✅ APM enabled                │  │ │
+│  │  │  • Metrics collection      │  │  │  │  ❌ No SSI (manual)            │  │ │
+│  │  │  • DogStatsD               │  │  │  │  ❌ Trace disabled (for now)   │  │ │
+│  │  └────────────────────────────┘  │  │  │                                │  │ │
+│  │                                  │  │  │  Image: spring-boot-demo:      │  │ │
+│  └──────────────────────────────────┘  │  │         latest                 │  │ │
+│                                        │  │  Replicas: 2                   │  │ │
+│                                        │  │  Service: spring-boot-demo-    │  │ │
+│                                        │  │           fargate-service      │  │ │
+│                                        │  └────────────────────────────────┘  │ │
+│                                        │            │                         │ │
+│                                        │            │ localhost               │ │
+│                                        │            ▼                         │ │
+│                                        │  ┌────────────────────────────────┐  │ │
+│                                        │  │  Datadog Agent Sidecar         │  │ │
+│                                        │  │  (Injected by Operator)        │  │ │
+│                                        │  │                                │  │ │
+│                                        │  │  • APM collection              │  │ │
+│                                        │  │  • Log collection              │  │ │
+│                                        │  │  • Metrics forwarding          │  │ │
+│                                        │  │  • DogStatsD                   │  │ │
+│                                        │  └────────────────────────────────┘  │ │
+│                                        │                                      │ │
+│                                        └──────────────────────────────────────┘ │
+│                                                                                 │
+│  ┌───────────────────────────────────────────────────────────────────────────┐  │
+│  │                       Supporting Infrastructure                           │  │
+│  │                                                                           │  │
+│  │  • datadog-fargate-rbac.yaml - RBAC for Fargate namespace                 │  │
+│  │  • fargate_ns_svc.yaml - Fargate namespace and service definitions        │  │
+│  │  • datadog-secret-eks (Secret) - Datadog API key and cluster agent token  │  │
+│  └───────────────────────────────────────────────────────────────────────────┘  │
+│                                    |                                            │
+│                                    ▼                                            │
+│                          ┌──────────────────────┐                               │
+│                          │   Datadog Platform   │                               │
+│                          │   (datadoghq.com)    │                               │
+│                          │                      │                               │
+│                          │  • APM Traces        │                               │
+│                          │  • Custom Metrics    │                               │
+│                          │  • Logs              │                               │
+│                          │  • Infrastructure    │                               │
+│                          └──────────────────────┘                               │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Components Breakdown
