@@ -1,0 +1,354 @@
+{
+  "$schema": "https://www.krakend.io/schema/krakend.json",
+  "version": 3,
+  "name": "Datadog Runner API Gateway",
+  "port": 8080,
+  "cache_ttl": "3600s",
+  "timeout": "30s",
+  "extra_config": {
+    "telemetry/opentelemetry": {
+      "service_name": "api-gateway",
+      "service_version": "0.1.0",
+      "exporters": {
+        "prometheus": [
+          {
+            "name": "krakend_metrics",
+            "port": 9090,
+            "listen_ip": "0.0.0.0",
+            "process_metrics": true,
+            "go_metrics": true
+          }
+        ]
+      },
+      "layers": {
+        "global": {
+          "disable_metrics": false,
+          "disable_traces": false
+        },
+        "router": {
+          "disable_metrics": false,
+          "disable_traces": false,
+          "metrics": {
+            "detailed_connection": true,
+            "round_trip": true,
+            "read_payload": true,
+            "static_attributes": [
+              {
+                "key": "layer",
+                "value": "router"
+              },
+              {
+                "key": "service_type", 
+                "value": "api_gateway"
+              }
+            ]
+          }
+        },
+        "proxy": {
+          "disable_metrics": false,
+          "disable_traces": false,
+          "metrics": {
+            "detailed_connection": true,
+            "round_trip": true,
+            "read_payload": true,
+            "disable_stage": false,
+            "static_attributes": [
+              {
+                "key": "layer",
+                "value": "proxy"
+              },
+              {
+                "key": "service_type",
+                "value": "api_gateway"
+              }
+            ]
+          }
+        },
+        "backend": {
+          "disable_metrics": false,
+          "disable_traces": false,
+          "metrics": {
+            "disable_stage": false,
+            "round_trip": true,
+            "read_payload": true,
+            "detailed_connection": true,
+            "static_attributes": [
+              {
+                "key": "layer",
+                "value": "backend"
+              },
+              {
+                "key": "backend_type",
+                "value": "api_gateway"
+              }
+            ]
+          }
+        },
+        "pipe": {
+          "disable_metrics": false,
+          "disable_traces": false,
+          "metrics": {
+            "detailed_connection": true,
+            "round_trip": true,
+            "static_attributes": [
+              {
+                "key": "layer",
+                "value": "pipe"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "security/cors": {
+      "allow_origins": ["*"],
+      "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      "allow_headers": ["*"],
+      "expose_headers": ["Content-Length", "Content-Type"],
+      "max_age": "12h"
+    }
+  },
+  "endpoints": [
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false
+        }
+      ],
+      "extra_config": {
+        "proxy": {
+          "static": {
+            "data": {
+              "status": "ok",
+              "service": "api-gateway",
+              "timestamp": "2025-09-10T15:30:00Z"
+            },
+            "strategy": "always"
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/api/auth/{path}",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/auth/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/auth/{path}",
+      "method": "POST",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/auth/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/auth/{path}",
+      "method": "DELETE",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/auth/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "DELETE",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/session/{path}",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/session/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/score",
+      "method": "POST",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/score",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/chat",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["chat-node-svc:8080"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/chat/{path}",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["chat-node-svc:8080"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/chat/{path}",
+      "method": "POST",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "host": ["chat-node-svc:8080"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/ranking",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["ranking-java-svc:8081"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/ranking/{path}",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["ranking-java-svc:8081"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/ranking/{path}",
+      "method": "POST",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/{path}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "host": ["ranking-java-svc:8081"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/rankings/{path}",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/rankings/{path}",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "host": ["ranking-java-svc:8081"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/status",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["auth-python-svc:8000"],
+          "disable_host_sanitize": false,
+          "group": "auth"
+        },
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["chat-node-svc:8080"],
+          "disable_host_sanitize": false,
+          "group": "chat"
+        },
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": ["ranking-java-svc:8081"],
+          "disable_host_sanitize": false,
+          "group": "ranking"
+        }
+      ]
+    }
+  ]
+}

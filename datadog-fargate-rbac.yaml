@@ -1,0 +1,49 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: datadog-agent-fargate
+rules:
+  - apiGroups:
+    - ""
+    resources:
+    - nodes
+    - namespaces
+    - endpoints
+    verbs:
+    - get
+    - list
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/metrics
+      - nodes/spec
+      - nodes/stats
+      - nodes/proxy
+      - nodes/pods
+      - nodes/healthz
+    verbs:
+      - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: datadog-agent-fargate
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: datadog-agent-fargate
+subjects:
+  - kind: ServiceAccount
+    name: spring-boot-demo-fargate-service
+    namespace: fargate
+  - kind: ServiceAccount
+    name: datadog-agent-fargate-service
+    namespace: fargate
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: datadog-agent-fargate-service
+  namespace: fargate

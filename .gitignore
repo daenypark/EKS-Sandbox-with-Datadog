@@ -1,0 +1,52 @@
+# Datadog Secrets - Never commit real credentials
+datadog-secret-eks.yaml
+
+#RDS credentials
+rds_info.md
+
+# Any other secret files
+*-secret.yaml
+*-secrets.yaml
+*.secret.yaml
+*.secrets.yaml
+
+# Environment files with credentials
+.env
+.env.local
+*.credentials
+
+# Kubeconfig files may contain sensitive data
+kubeconfig
+*.kubeconfig
+
+# Private keys
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Python virtual environments
+venv/
+__pycache__/
+*.pyc
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Terraform state files (if you add Terraform)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Helm value files with secrets (if you use Helm)
+values-secrets.yaml
+*-secrets-values.yaml
+

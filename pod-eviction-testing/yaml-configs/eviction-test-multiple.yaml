@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-pod-eviction-test
+  labels:
+    test: eviction-multiple
+spec:
+  replicas: 4  # Creates 4 pods that will all be evicted
+  selector:
+    matchLabels:
+      app: eviction-test-multi
+  template:
+    metadata:
+      labels:
+        app: eviction-test-multi
+    spec:
+      containers:
+      - name: storage-filler
+        image: busybox
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Pod $(hostname) starting to fill storage..."
+          while true; do
+            dd if=/dev/zero of=/tmp/fill-$(date +%s) bs=1M count=100 2>/dev/null
+            sleep 1
+          done
+        resources:
+          limits:
+            ephemeral-storage: "500Mi"
+          requests:
+            ephemeral-storage: "200Mi"
+

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nodejs2
+  template:
+    metadata:
+      labels:
+        app: nodejs2
+        # sidecar.istio.io/inject: "true"
+      annotations:
+        ad.datadoghq.com/sample-node-app.logs: '[{"source":"nodejs2","service":"my_express_app2"}]'
+        # ad.datadoghq.com/istio-proxy.exclude: "true"
+        # ad.datadoghq.com/discovery.check_names: '["istio"]'
+        # ad.datadoghq.com/discovery.init_configs: '[{}]'
+        # ad.datadoghq.com/discovery.instances: |
+            # [
+              # {
+                # "istiod_endpoint": "http://%%host%%:15014/metrics",
+                # "use_openmetrics": "true"
+                # "extra_metrics": ["pilot_debounce_time.*"]
+              # }
+            # ]    
+    spec:
+      containers:
+        - name: sample-node-app
+          image: mecsantos/sample-node-apm:1.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DD_ENV
+              value: "stage"
+            - name: DD_SERVICE
+              value: "my_express_app2"
+            - name: DD_VERSION
+              value: "1.0.0"
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-demo-fargate
+  namespace: fargate
+  labels:
+    app: spring-boot-demo-fargate
+    version: v1
+    fargate: "true"  # Optional label to explicitly indicate Fargate preference
+    agent.datadoghq.com/sidecar: fargate
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring-boot-demo-fargate
+  template:
+    metadata:
+      labels:
+        app: spring-boot-demo-fargate
+        version: v1
+        fargate: "true"  # Optional label to explicitly indicate Fargate preference
+        agent.datadoghq.com/sidecar: fargate
+      # Note: Fargate uses AWS Fluent Bit or the Datadog sidecar for log collection
+      # The standard ad.datadoghq.com log annotations don't apply to Fargate
+    spec:
+      serviceAccountName: spring-boot-demo-fargate-service
+      containers:
+      - name: spring-boot-demo
+        image: 659775407889.dkr.ecr.ap-northeast-2.amazonaws.com/spring-boot-demo:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DD_SERVICE
+          value: "spring-boot-demo-fargate"
+        - name: DD_ENV
+          value: "fargate"
+        - name: DD_VERSION
+          value: "1.0.0"
+        - name: DD_AGENT_HOST
+          value: "localhost"  # Fargate sidecar runs in same pod. This is default option ref:https://docs.datadoghq.com/integrations/eks_fargate/?tab=admissioncontrollerdatadogoperator#trace-collection
+        - name: DD_TRACE_ENABLED
+          value: "false"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+

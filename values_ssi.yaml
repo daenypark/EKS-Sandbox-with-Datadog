@@ -1,0 +1,12 @@
+datadog:
+  apiKeyExistingSecret: "datadog-secret"
+  site: "datadoghq.com"
+  securityContext:
+    runAsUser: 100
+    runAsGroup: 0
+    fsGroup: 0
+    readOnlyRootFilesystem: true
+  disablePasswdMount: true
+agents:
+  image:
+    tag: 7.63.3

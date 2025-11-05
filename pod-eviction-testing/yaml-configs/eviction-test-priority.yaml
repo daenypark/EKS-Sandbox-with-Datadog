@@ -1,0 +1,57 @@
+# Priority Classes
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: 100
+globalDefault: false
+description: "Low priority class for testing eviction"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 10000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+description: "High priority class that can preempt low priority pods"
+---
+# Low Priority Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: low-priority-deployment
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: low-priority-app
+  template:
+    metadata:
+      labels:
+        app: low-priority-app
+    spec:
+      priorityClassName: low-priority
+      containers:
+      - name: app
+        image: nginx
+        resources:
+          requests:
+            memory: "500Mi"
+            cpu: "500m"
+---
+# High Priority Pod (apply this AFTER low priority pods are running)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: high-priority-pod-test
+spec:
+  priorityClassName: high-priority
+  containers:
+  - name: app
+    image: nginx
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+

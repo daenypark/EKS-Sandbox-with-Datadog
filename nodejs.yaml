@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs
+  labels:
+    tags.datadoghq.com/env: "stg"
+    tags.datadoghq.com/service: "my_express_app"
+    tags.datadoghq.com/version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nodejs
+  template:
+    metadata:
+      labels:
+        app: nodejs
+        tags.datadoghq.com/env: "stg"
+        tags.datadoghq.com/service: "my_express_app"
+        tags.datadoghq.com/version: "1.0.0"
+        admission.datadoghq.com/enabled: "true"
+      annotations:
+        admission.datadoghq.com/js-lib.version: v3.6.0
+        ad.datadoghq.com/sample-node-app.logs: '[{"source":"nodejs","service":"my_express_app"}]'
+        # ad.datadoghq.com/istio-proxy.exclude: "true"
+    spec:
+      containers:
+        - name: sample-node-app
+          image: mecsantos/sample-node-apm:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION 
+              valueFrom: 
+                fieldRef: 
+                  fieldPath: metadata.labels['tags.datadoghq.com/version'] 
+      # Add this apart to support arm
+      # ref:https://cloud.google.com/kubernetes-engine/docs/tutorials/migrate-x86-to-multi-arch-arm#deploy-arm-app
+      # nodeSelector:
+        # kubernetes.io/arch: arm64
+      # tolerations:
+        # - key: kubernetes.io/arch
+          # operator: Equal
+          # value: arm64
+          # effect: NoSchedule

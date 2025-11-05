@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-demo
+  namespace: default
+  labels:
+    app: spring-boot-demo
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring-boot-demo
+  template:
+    metadata:
+      labels:
+        app: spring-boot-demo
+        version: v1
+        admission.datadoghq.com/enabled: "true"  # Enable Datadog library injection
+      annotations:
+        admission.datadoghq.com/java-lib.version: "v1"  # Java tracer version
+    spec:
+      containers:
+      - name: spring-boot-demo
+        image: 659775407889.dkr.ecr.ap-northeast-2.amazonaws.com/spring-boot-demo:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DD_SERVICE
+          value: "spring-boot-demo"
+        - name: DD_ENV
+          value: "test"
+        - name: DD_VERSION
+          value: "1.0.0"
+        - name: DD_TRACE_AGENT_URL
+          value: "unix:///var/run/datadog/apm.socket"  # Use Unix Domain Socket
+        volumeMounts:
+        - name: apmsocketpath
+          mountPath: /var/run/datadog
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: apmsocketpath
+        hostPath:
+          path: /var/run/datadog

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eviction-test-ephemeral
+  labels:
+    app: eviction-test
+spec:
+  containers:
+  - name: storage-filler
+    image: busybox
+    command:
+    - /bin/sh
+    - -c
+    - |
+      echo "Starting to fill ephemeral storage..."
+      while true; do
+        dd if=/dev/zero of=/tmp/fill-$(date +%s) bs=1M count=100
+        sleep 1
+      done
+    resources:
+      limits:
+        ephemeral-storage: "500Mi"
+      requests:
+        ephemeral-storage: "200Mi"
+  restartPolicy: Never
+

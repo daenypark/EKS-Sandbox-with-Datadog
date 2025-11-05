@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: datadog-agent-fargate-service
+  namespace: fargate
+  labels:
+    app: spring-boot-demo-fargate
+spec:
+  selector:
+    app: spring-boot-demo-fargate
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP

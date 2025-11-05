@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mydogstatsdpod
+  namespace: fargate
+  labels:
+    app: dogstatsd-python-app
+    version: v1
+    fargate: "true"
+    agent.datadoghq.com/sidecar: fargate
+    # admission.datadoghq.com/enabled: "false"  # Disable Datadog SSI for this Python app
+
+spec:
+  shareProcessNamespace: true
+  serviceAccountName: datadog-agent-fargate-service
+  containers:
+  - name: mydogstatsdpod
+    image: public.ecr.aws/r1n8o0r0/danny/fargate-py:latest
+    imagePullPolicy: Always
+    env:
+    # APM Configuration
+    - name: DD_APM_ENABLED
+      value: "true"
+    - name: DD_TRACE_ENABLED
+      value: "true"
+    - name: DD_PROFILING_ENABLED
+      value: "true"
+    - name: DD_LOGS_INJECTION
+      value: "true"
+    - name: DD_SERVICE
+      value: "dogstatsd-python-app"
+    - name: DD_ENV
+      value: "fargate"
+    - name: DD_VERSION
+      value: "1.0.0"
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+    ports:
+    - containerPort: 8125
+      name: dogstatsd
+      protocol: UDP

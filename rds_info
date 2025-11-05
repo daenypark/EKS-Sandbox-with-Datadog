@@ -1,0 +1,18 @@
+old: danny-rds-mysql.ckvbk70xefba.eu-north-1.rds.amazonaws.com
+new: danny-mysql-eks.ckvbk70xefba.eu-north-1.rds.amazonaws.com
+
+Master username: admin
+pwd: danny-rds-mysql
+
+#kubectl create secret generic database-secret --from-literal=password="danny-rds-mysql"
+
+
+mysql -h danny-mysql-eks.ckvbk70xefba.eu-north-1.rds.amazonaws.com -P 3306 -u admin -p
+
+nc -vz danny-mysql-eks.ckvbk70xefba.eu-north-1.rds.amazonaws.com 3306
+
+CREATE USER datadog@'%' IDENTIFIED by 'danny-rds-mysql';
+ALTER USER datadog@'%' WITH MAX_USER_CONNECTIONS 5;
+GRANT REPLICATION CLIENT ON *.* TO datadog@'%';
+GRANT PROCESS ON *.* TO datadog@'%';
+GRANT SELECT ON performance_schema.* TO datadog@'%';

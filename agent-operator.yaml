@@ -1,0 +1,93 @@
+kind: "DatadogAgent"
+apiVersion: "datadoghq.com/v2alpha1"
+metadata:
+  name: "datadog"
+spec:
+  global:
+    site: "datadoghq.com"
+    logLevel: "INFO"
+    credentials:
+      apiSecret:
+        secretName: "datadog-secret-eks"
+        keyName: "api-key"
+    clusterAgentTokenSecret:
+      secretName: "datadog-secret-eks"
+      keyName: "token"
+    kubelet:
+      tlsVerify: false
+    clusterName: "danny-eks-cluster"
+    registry: public.ecr.aws/datadog
+
+  override:
+    nodeAgent:
+      image:
+        tag: "7.70.0"
+      env:
+        - name: DD_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: DD_KUBELET_CORE_CHECK_ENABLED
+          value: "false"
+        - name: DD_CONTAINER_EXCLUDE_LOGS
+          value: "kube_namespace:.*"
+        - name: DD_CONTAINER_INCLUDE
+          value: "kube_namespace:datadog kube_namespace:fargate"
+      extraConfd:
+        configDataMap:
+          kubelet.yaml: |-
+            ad_identifiers:
+              - kubelet
+            init_config: null
+            instances:
+              - min_collection_interval: 20
+                histogram_buckets_as_distributions: true
+
+    clusterAgent:
+      image:
+        tag: "7.70.0"
+      # env:
+      #   # - name: DD_ADMISSION_CONTROLLER_AGENT_SIDECAR_KUBELET_API_LOGGING_ENABLED
+      #   #   value: "true"
+      nodeSelector:
+        kubernetes.io/os: linux
+        node.kubernetes.io/instance-type: t3.medium
+  features:
+    logCollection:
+      enabled: true
+      containerCollectAll: false
+    admissionController:
+      agentCommunicationMode: service
+      agentSidecarInjection:
+        enabled: true
+        provider: fargate
+        profiles:
+          - env:
+            - name: DD_LOGS_ENABLED
+              value: "true"
+            - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+              value: "false"
+            - name: DD_LOGS_CONFIG_K8S_CONTAINER_USE_FILE
+              value: "false"
+    apm:
+      instrumentation:
+        enabled: true
+        targets:
+          - name: "ec2-java-target"
+            namespaceSelector:
+              matchNames:
+                - "default"
+                - "fargate"
+            podSelector:
+              matchExpressions:
+                - key: "fargate"
+                  operator: "NotIn"
+                  values: ["true"]
+            ddTraceVersions:
+              java: "1"
+      unixDomainSocketConfig:
+        path: /var/run/datadog/apm.socket
+    dogstatsd:
+      hostPortConfig:
+        enabled: true
+        hostPort: 8125
